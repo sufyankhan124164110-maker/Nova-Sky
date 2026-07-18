@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio - Nova Sky</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+
+<h1>🛰 NOVA SKY</h1>
+
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="portfolio.html">Portfolio</a>
+  <a href="privacy.html">Privacy</a>
+</div>
+
+<div class="card page-text">
+<h3>Project: Nova Sky</h3>
+<p>Nova Sky is a browser-based astronomy tool built from scratch using plain HTML, CSS, and JavaScript — no frameworks, no backend server. Every feature runs entirely on the device, pulling in live data only where needed.</p>
+
+<h3>Features</h3>
+<p>🛰 <b>Live ISS Tracking</b> — real-time latitude, longitude, altitude, and speed of the International Space Station.</p>
+<p>🛰 <b>Satellite Pass Predictions</b> — calculates upcoming visible ISS passes for the user's exact location, including rise/set direction and duration.</p>
+<p>🪐 <b>Planet Tracker</b> — computes the real-time sky position (altitude & direction) of every visible planet plus the Moon, using orbital mechanics.</p>
+<p>⭐ <b>Live Star Map</b> — a simulated dome-view sky map plotting ~50 of the brightest named stars and all visible planets at their true current position, calculated from sidereal time and the observer's coordinates.</p>
+<p>🔭 <b>AR Sky View</b> — an experimental augmented-reality mode that overlays live star and planet positions onto the phone's camera feed, using device compass and tilt sensors.</p>
+<p>📍 <b>Live Location & Clock</b> — real-time clock and GPS-based location, used to personalize every calculation above.</p>
+
+<h3>Technical approach</h3>
+<p>The site uses the open-source Astronomy Engine library for precise planetary and lunar position calculations, a hand-built star catalog with sidereal-time-based coordinate transforms for the star map, and the free ISS Pass and Where The ISS At APIs for satellite tracking. Everything renders client-side on an HTML canvas — no data is sent to or stored on any server.</p>
+
+<h3>Status</h3>
+<p>Nova Sky is actively being developed, with new features added regularly.</p>
+</div>
+
+<div class="footer">L.C.A.E.T. LTD.</div>
+</div>
+</body>
+</html>
