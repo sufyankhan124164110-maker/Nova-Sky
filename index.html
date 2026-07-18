@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA SKY</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🛰 NOVA SKY</h1>
+
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="portfolio.html">Portfolio</a>
+  <a href="privacy.html">Privacy</a>
+</div>
+
+<div class="card">
+<h2 id="clock"></h2>
+<p id="date"></p>
+</div>
+
+<div class="card">
+<h3>📍 YOUR LOCATION</h3>
+<p id="userLocation">Unknown</p>
+<button onclick="getLocation()">Update Location</button>
+</div>
+
+<div class="card">
+<h3>🛰 LIVE ISS</h3>
+<p id="iss">Press Scan Sky</p>
+</div>
+
+<div class="card">
+<h3>🪐 PLANETS</h3>
+<p id="planetsOut">Press Planets</p>
+</div>
+
+<div class="card">
+<h3>⭐ STAR MAP</h3>
+<canvas id="skyCanvas" width="320" height="320"></canvas>
+<p id="starsInfo">Press Stars</p>
+</div>
+
+<div class="buttons">
+<button onclick="scanSky()">🚀 Scan Sky</button>
+<button onclick="satellites()">🛰 Satellites</button>
+<button onclick="planets()">🪐 Planets</button>
+<button onclick="stars()">⭐ Stars</button>
+<button onclick="startAR()">🔭 AR Sky</button>
+</div>
+
+<div class="footer">
+L.C.A.E.T. LTD.
+</div>
+
+</div>
+
+<div id="arView" class="ar-hidden">
+  <video id="arVideo" autoplay playsinline muted></video>
+  <canvas id="arCanvas"></canvas>
+  <button id="arClose" onclick="stopAR()">✕ Close</button>
+  <div id="arInfo"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js"></script>
+<script src="script.js"></script>
+</body>
+  </html>
