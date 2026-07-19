@@ -107,7 +107,6 @@ function planets(){
 
 // ---------- STAR + PLANET SKY MAP ----------
 
-// Bright star catalog: [name, RA (hours), Dec (degrees), magnitude]
 const STAR_CATALOG = [
 ["Sirius",6.7525,-16.7161,-1.46],["Canopus",6.3992,-52.6956,-0.74],
 ["Alpha Centauri",14.6600,-60.8339,-0.27],["Arcturus",14.2610,19.1825,-0.05],
@@ -136,7 +135,6 @@ const STAR_CATALOG = [
 ["Alpheratz",0.1398,29.0904,2.07],["Rasalhague",17.5822,12.5601,2.08]
 ];
 
-// planet display colors
 const PLANET_COLORS = {
   Mercury:"#b5b5b5", Venus:"#ffe9b3", Mars:"#ff6a4d",
   Jupiter:"#f0c987", Saturn:"#e8dcb0", Uranus:"#8fdcff",
@@ -188,13 +186,11 @@ function drawSkyMap(lat, lon){
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // horizon circle
   ctx.strokeStyle = "#00e5ff88";
   ctx.beginPath();
   ctx.arc(cx,cy,R,0,2*Math.PI);
   ctx.stroke();
 
-  // compass labels
   ctx.fillStyle = "#00e5ff";
   ctx.font = "12px Arial";
   ctx.fillText("N", cx-4, cy-R-4);
@@ -202,7 +198,6 @@ function drawSkyMap(lat, lon){
   ctx.fillText("E", cx+R+4, cy+4);
   ctx.fillText("W", cx-R-14, cy+4);
 
-  // mark observer's position at the center (zenith)
   ctx.beginPath();
   ctx.fillStyle = "#00ff88";
   ctx.arc(cx, cy, 5, 0, 2*Math.PI);
@@ -219,7 +214,6 @@ function drawSkyMap(lat, lon){
   const lst = getLST(now, lon);
   let visibleStars = 0;
 
-  // draw stars
   STAR_CATALOG.forEach(([name, ra, dec, mag]) => {
     const {altitude, azimuth} = equatorialToHorizontal(ra, dec, lat, lst);
     if(altitude <= 0) return;
@@ -240,7 +234,6 @@ function drawSkyMap(lat, lon){
     }
   });
 
-  // draw planets + Moon
   let visiblePlanets = 0;
   if(window.Astronomy){
     try{
@@ -294,6 +287,10 @@ let arStream = null;
 let arRunning = false;
 let arLat = null, arLon = null;
 let arHeading = 0, arPitch = 0;
+let arRawAlpha = null, arRawBeta = null, arRawGamma = null;
+let arEventCount = 0;
+let arCalibrationOffset = 0;
+let arSensorWarningShown = false;
 
 async function startAR(){
   const arView = document.getElementById("arView");
@@ -301,13 +298,15 @@ async function startAR(){
 
   arInfo.innerHTML = "Requesting permissions...";
   arView.classList.remove("ar-hidden");
+  arEventCount = 0;
+  arSensorWarningShown = false;
 
   if (typeof DeviceOrientationEvent !== "undefined" &&
       typeof DeviceOrientationEvent.requestPermission === "function") {
     try{
       const res = await DeviceOrientationEvent.requestPermission();
       if(res !== "granted"){
-        arInfo.innerHTML = "Motion permission denied.";
+        arInfo.innerHTML = "Motion permission denied. Enable it in your browser's site settings.";
         return;
       }
     }catch(e){
@@ -323,7 +322,7 @@ async function startAR(){
     });
     document.getElementById("arVideo").srcObject = arStream;
   }catch(e){
-    arInfo.innerHTML = "Camera unavailable. AR needs HTTPS + a real device camera.";
+    arInfo.innerHTML = "Camera unavailable. Open this site in Chrome or Safari directly (not an in-app browser), over HTTPS.";
     return;
   }
 
@@ -336,6 +335,12 @@ async function startAR(){
 
   window.addEventListener("deviceorientationabsolute", handleOrientation, true);
   window.addEventListener("deviceorientation", handleOrientation, true);
+
+  setTimeout(() => {
+    if(arEventCount === 0 && arRunning){
+      arSensorWarningShown = true;
+    }
+  }, 2500);
 
   arRunning = true;
   requestAnimationFrame(renderAR);
@@ -352,7 +357,16 @@ function stopAR(){
   }
 }
 
+function calibrateNorth(){
+  arCalibrationOffset = arRawAlpha !== null ? arRawAlpha : 0;
+}
+
 function handleOrientation(event){
+  arEventCount++;
+  arRawAlpha = event.alpha;
+  arRawBeta = event.beta;
+  arRawGamma = event.gamma;
+
   let heading = null;
 
   if (typeof event.webkitCompassHeading !== "undefined" && event.webkitCompassHeading !== null){
@@ -361,7 +375,9 @@ function handleOrientation(event){
     heading = (360 - event.alpha) % 360;
   }
 
-  if(heading !== null) arHeading = heading;
+  if(heading !== null){
+    arHeading = (heading - arCalibrationOffset + 360) % 360;
+  }
   if(event.beta !== null) arPitch = event.beta - 90;
 }
 
@@ -383,8 +399,14 @@ function renderAR(){
     return;
   }
 
-  const FOV_H = 60;
-  const FOV_V = 80;
+  if(arSensorWarningShown){
+    arInfo.innerHTML = "⚠ No compass data detected. Open this site directly in Chrome/Safari (not Acode or an in-app browser), and make sure motion sensors are allowed.";
+    requestAnimationFrame(renderAR);
+    return;
+  }
+
+  const FOV_H = 70;
+  const FOV_V = 90;
   const now = new Date();
   const lst = getLST(now, arLon);
   let shown = 0;
@@ -400,16 +422,19 @@ function renderAR(){
     const x = canvas.width/2 + (dAz/(FOV_H/2)) * (canvas.width/2);
     const y = canvas.height/2 - (dAlt/(FOV_V/2)) * (canvas.height/2);
 
-    const size = Math.max(1, 3 - mag*0.6);
+    const size = Math.max(2, 5 - mag*0.8);
+    ctx.shadowColor = "white";
+    ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.fillStyle = "white";
     ctx.arc(x,y,size,0,2*Math.PI);
     ctx.fill();
+    ctx.shadowBlur = 0;
 
-    if(mag < 1.5){
+    if(mag < 2){
       ctx.fillStyle = "#cdefff";
-      ctx.font = "11px Arial";
-      ctx.fillText(name, x+6, y-4);
+      ctx.font = "13px Arial";
+      ctx.fillText(name, x+8, y-5);
     }
     shown++;
   });
@@ -431,20 +456,24 @@ function renderAR(){
         const x = canvas.width/2 + (dAz/(FOV_H/2)) * (canvas.width/2);
         const y = canvas.height/2 - (dAlt/(FOV_V/2)) * (canvas.height/2);
 
+        ctx.shadowColor = PLANET_COLORS[body] || "#ffcc00";
+        ctx.shadowBlur = 14;
         ctx.beginPath();
         ctx.fillStyle = PLANET_COLORS[body] || "#ffcc00";
-        ctx.arc(x,y,7,0,2*Math.PI);
+        ctx.arc(x,y,9,0,2*Math.PI);
         ctx.fill();
+        ctx.shadowBlur = 0;
 
         ctx.fillStyle = "#ffe9a8";
-        ctx.font = "bold 12px Arial";
-        ctx.fillText(body, x+9, y-6);
+        ctx.font = "bold 13px Arial";
+        ctx.fillText(body, x+11, y-7);
         shown++;
       });
     }catch(e){}
   }
 
-  arInfo.innerHTML = `Heading ${Math.round(arHeading)}° · Pitch ${Math.round(arPitch)}° · ${shown} objects in view`;
+  arInfo.innerHTML = `Heading ${Math.round(arHeading)}° · Pitch ${Math.round(arPitch)}° · ${shown} objects in view · sensor events: ${arEventCount}`;
 
   requestAnimationFrame(renderAR);
+    }
                                                }
