@@ -105,8 +105,6 @@ function planets(){
   });
 }
 
-// ---------- STAR + PLANET SKY MAP ----------
-
 const STAR_CATALOG = [
 ["Sirius",6.7525,-16.7161,-1.46],["Canopus",6.3992,-52.6956,-0.74],
 ["Alpha Centauri",14.6600,-60.8339,-0.27],["Arcturus",14.2610,19.1825,-0.05],
@@ -280,8 +278,6 @@ function stars(){
     starsInfo.innerHTML = "Location permission needed.";
   });
 }
-
-// ---------- AR SKY VIEW ----------
 
 let arStream = null;
 let arRunning = false;
@@ -475,5 +471,4 @@ function renderAR(){
   arInfo.innerHTML = `Heading ${Math.round(arHeading)}° · Pitch ${Math.round(arPitch)}° · ${shown} objects in view · sensor events: ${arEventCount}`;
 
   requestAnimationFrame(renderAR);
-    }
-                                               }
+        }
